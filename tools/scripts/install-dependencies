@@ -1,0 +1,4 @@
+#!/bin/bash
+
+docker-compose exec red-tetris-front yarn install
+docker-compose exec red-tetris-api yarn install
