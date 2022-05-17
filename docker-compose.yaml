@@ -21,4 +21,5 @@ services:
       - ./api:/app
     ports:
       - "4000:4000"
+      - "81:81"
     command: "yarn start:dev"

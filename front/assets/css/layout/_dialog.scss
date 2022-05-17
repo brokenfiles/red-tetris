@@ -1,0 +1,16 @@
+
+.dialog {
+
+  @apply mx-auto flex flex-col;
+
+  width: min(100% - 2rem, 400px);
+  height: min(100% - 4rem, 800px);
+
+  &__content {
+
+    @apply w-full flex-1 bg-secondary;
+
+
+  }
+
+}

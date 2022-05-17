@@ -1,6 +1,14 @@
 <template>
     <div class="screen">
-      <hub-graphics-floating-pieces/>
+      <div class="bg-white">
+        <div class="bg-sky">
+          <HubGraphicsStarsLayout/>
+          <HubGraphicsFloatingPieces class="hidden md:block"/>
+          <div class="w-full h-full container mx-auto flex items-center justify-center relative z-10">
+            <HubDialog/>
+          </div>
+        </div>
+      </div>
     </div>
 </template>
 
@@ -17,11 +25,14 @@ useHead({
 <style lang="scss" scoped>
 
 .screen {
-  @apply w-screen h-screen
-         flex items-center justify-center;
+  @apply w-screen h-screen relative;
 
-  background-image:
-      radial-gradient(circle, #9a0680, #950382, #8f0184, #890087, #820089, #7b0088, #740086, #6d0185, #650180, #5c017b, #540075, #4c0070);
+  > .bg-white, .bg-sky {
+    width: 100%;
+    height: 100%;
+  }
+
+
 }
 
 </style>

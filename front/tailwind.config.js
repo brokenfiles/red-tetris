@@ -6,7 +6,13 @@ module.exports = {
     "./plugins/**/*.{js,ts}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'sky': 'rgba(0,30,38,1)',
+        'primary': 'var(--primary-color)',
+        'secondary': 'var(--secondary-color)'
+      }
+    },
   },
   plugins: [],
 }

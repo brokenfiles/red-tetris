@@ -1,0 +1,10 @@
+
+/* Declarations */
+:root {
+  --primary-color: rgb(105, 65, 228);
+  --secondary-color: rgb(255, 255, 255)
+}
+
+@import 'layout/default';
+@import 'layout/dialog';
+@import 'layout/forms';
