@@ -4,6 +4,10 @@ import {Player} from "../user/classes/Player.class";
 import {IHubDto} from "./dto/Hub.dto";
 import {WsException} from "@nestjs/websockets";
 import {EventService} from "../event/event.service";
+import {NoHubException} from "./errors/NoHub.exception";
+import {NotAllowedException} from "./errors/NotAllowed.exception";
+import {AlreadyPlayingException} from "./errors/AlreadyPlaying.exception";
+import {SameHubException} from "./errors/SameHub.exception";
 
 @Injectable()
 export class HubService {
@@ -35,13 +39,25 @@ export class HubService {
             this.addPlayer(hub, player)
             this.add(hub)
 
+            // broadcast to all users there is a new hub
+            this.eventService.broadcast("hub/new", hub.serialize({ groups: ['Hub:PlayerNumber'] }))
+
             return hub
         } else {
-            // join the hub
-            this.addPlayer(foundHub, player)
+
+            if (player.hub === foundHub)
+                throw new SameHubException()
 
             // emit event to players in hub to specify them there is a new player
             this.eventService.emitToPlayers(foundHub.players, "hub/playerJoined", player.serialize())
+
+            // join the hub
+            this.addPlayer(foundHub, player)
+
+            this.eventService.broadcast("hub/playersUpdated", {
+                name: foundHub.name,
+                playersNumber: foundHub.players.length
+            })
 
             return foundHub
         }
@@ -66,13 +82,24 @@ export class HubService {
     }
 
     public removePlayer (hub: Hub, player: Player): void {
-        if (!hub) return
+        if (!hub) throw new NoHubException()
+
+        // save the previous owner socket id to check if the owner changed
+        const previousOwnerSocketId = hub.owner.socket.id
 
         const playersLeft = hub.removePlayer(player)
         // emit event to players in hub to specify them that a player left
         this.eventService.emitToPlayers(hub.players, "hub/playerLeft", player.serialize())
+        this.eventService.broadcast("hub/playersUpdated", {
+            name: hub.name,
+            playersNumber: hub.players.length
+        })
+
         if (playersLeft === 0) {
             this.remove(hub)
+        } else if (playersLeft === 1 && previousOwnerSocketId !== hub.owner.socket.id) {
+            // that means the owner changed, so emit the event that the owner changed
+            this.eventService.emitToPlayers(hub.players, "hub/setOwner", hub.owner.serialize())
         }
     }
 
@@ -80,7 +107,7 @@ export class HubService {
         const idx = this._hubs.indexOf(hub)
         if (idx !== -1) {
             // broadcast to all users that the hub is destroyed
-            this.eventService.broadcast("hub/destroyed", this._hubs[idx])
+            this.eventService.broadcast("hub/destroyed", this._hubs[idx].serialize())
             this._hubs.splice(idx, 1)
         }
         return idx
@@ -88,8 +115,6 @@ export class HubService {
 
     public add (hub: Hub): void {
         this._hubs.push(hub)
-        // broadcast to all users there is a new hub
-        this.eventService.broadcast("hub/new", hub)
     }
 
     public findAll() {
@@ -97,15 +122,15 @@ export class HubService {
     }
 
     public start(player: Player): IHubDto {
-        // todo: throw a custom error
         if (!player.hub)
-            throw new WsException("You do not have a hub")
+            throw new NoHubException()
 
         const hub = player.hub
-        // todo: throw a custom error
         if (hub.owner !== player)
-            throw new WsException("You are not the owner")
-        // hub.start()
+            throw new NotAllowedException("You're not the owner")
+        if (hub.status === "PLAYING")
+            throw new AlreadyPlayingException()
+
         return hub.serialize()
     }
 }

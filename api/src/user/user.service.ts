@@ -13,7 +13,23 @@ export class UserService {
         this._players = []
     }
 
-    public create (socket: Socket, playerName: string): void {
+    public create (socket: Socket, playerName: string): Socket | void {
+        if (this.findOne(playerName) !== undefined) {
+            socket.emit("exception", {
+                status: "error",
+                message: "This username is already taken"
+            })
+            return socket.disconnect()
+        }
+
+        if (playerName.length < 3 || playerName.length > 16) {
+            socket.emit("exception", {
+                status: "error",
+                message: "This player name is invalid"
+            })
+            return socket.disconnect()
+        }
+
         // add a new player to the list
         const player = new Player(socket, playerName)
         this.emitConnectionEvents(player)
@@ -35,7 +51,7 @@ export class UserService {
         }
     }
 
-    public findOne (param: string): Player | null {
+    public findOne (param: string): Player | undefined {
         const player = this._players.find((p) => {
             return p.socket.id === param || p.playerName === param
         })

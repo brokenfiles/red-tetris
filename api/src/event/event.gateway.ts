@@ -15,7 +15,6 @@ import {EventService} from "./event.service";
     origin: process.env.FRONT_URI || "http://localhost:3000",
   }
 })
-@UseFilters(WsAllExceptionsFilter)
 export class EventGateway implements OnGatewayInit {
 
   private logger: Logger = new Logger("EventsGateway")

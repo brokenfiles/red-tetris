@@ -3,7 +3,7 @@ import {
   OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
-  WebSocketGateway, WsException
+  WebSocketGateway, WsException, WsResponse
 } from '@nestjs/websockets';
 import {Server, Socket} from "socket.io";
 import {Logger, UseFilters, UseGuards} from "@nestjs/common";
@@ -19,7 +19,6 @@ import {WsAllExceptionsFilter} from "../filters/WsAllExceptions.filter";
     origin: process.env.FRONT_URI || "http://localhost:3000",
   }
 })
-@UseFilters(WsAllExceptionsFilter)
 export class UserGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 
   private logger: Logger = new Logger("UserGateway")

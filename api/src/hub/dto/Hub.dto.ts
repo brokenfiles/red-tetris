@@ -1,6 +1,7 @@
 import {IPlayerDto} from "../../user/dto/Player.dto";
 import {Hub} from "../classes/Hub.class";
 
+
 export interface IHubDto {
 
     name: string

@@ -1,38 +1,36 @@
-import {OnGatewayInit, SubscribeMessage, WebSocketGateway} from '@nestjs/websockets';
-import {Server} from "socket.io";
-import {Logger, UseFilters, UseGuards} from "@nestjs/common";
+import {MessageBody, OnGatewayInit, SubscribeMessage, WebSocketGateway, WsResponse} from '@nestjs/websockets';
+import {Logger, UseFilters, UseGuards, UsePipes, ValidationPipe} from "@nestjs/common";
 import {Player} from "../user/classes/Player.class";
 import {HubService} from "./hub.service";
 import {WsGuard} from "../guards/WsGuard.class";
 import {WsPlayer} from "../decorators/WsPlayer.decorator";
-import {WsData} from "../decorators/WsData.decorator";
 import {IHubDto} from "./dto/Hub.dto";
-import {WsAllExceptionsFilter} from "../filters/WsAllExceptions.filter";
+import {CreateHubDto} from "./dto/input/create-hub.dto";
+import {BadRequestTransformationFilter} from "../filters/BadRequestTransformation.filter";
 
 @WebSocketGateway(parseInt(process.env.WS_PORT || "81"), {
   cors: {
     origin: process.env.FRONT_URI || "http://localhost:3000",
   }
 })
-@UseFilters(WsAllExceptionsFilter)
+@UsePipes(new ValidationPipe())
+@UseFilters(new BadRequestTransformationFilter())
 export class HubGateway implements OnGatewayInit {
 
   private logger: Logger = new Logger("HubGateway")
-  private _server: Server
 
   constructor(
       private hubService: HubService
   ) {}
 
-  afterInit(server: Server): void {
+  afterInit(): void {
     this.logger.log("Gateway initiated")
-    this._server = server
   }
 
   @UseGuards(WsGuard)
   @SubscribeMessage("hub/createOrJoin")
-  public createOrJoin (@WsPlayer() player: Player, @WsData() hubName: string): IHubDto {
-    return this.hubService.createOrJoin(hubName, player).serialize({ groups: ["Hub:Players"] })
+  public createOrJoin (@WsPlayer() player: Player, @MessageBody() hubDto: CreateHubDto): IHubDto {
+    return this.hubService.createOrJoin(hubDto.hubName, player).serialize({ groups: ["Hub:Players"] })
   }
 
   @UseGuards(WsGuard)

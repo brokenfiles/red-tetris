@@ -2,6 +2,7 @@ import {Player} from "../../user/classes/Player.class";
 import {TooMuchPlayersException} from "../errors/TooMuchPlayers.exception";
 import {ISerializable, SerializeContext} from "../../interfaces/Serializable.interface";
 import {IHubDto} from "../dto/Hub.dto";
+import {Game} from "../../game/classes/Game.class";
 
 export namespace Hub {
     export type status = "WARMING" | "PLAYING"
@@ -15,9 +16,11 @@ export class Hub implements ISerializable<IHubDto> {
     private _players: Player[]
     private _status: Hub.status
     private _owner: Player
+    private _games: Game[]
 
     constructor(name: string, owner: Player) {
         this._players = []
+        this._games = []
         this._status = "WARMING"
         this._name = name
         this._owner = owner
@@ -31,6 +34,14 @@ export class Hub implements ISerializable<IHubDto> {
             players: context?.groups.includes("Hub:Players") ? this.players.map((p) => p.serialize()) : undefined,
             playerNumber: context?.groups.includes('Hub:PlayerNumber') ? this.players.length : undefined
         }
+    }
+
+    public startGames (): Game[] {
+        for (const player of this.players) {
+            const game = new Game(player)
+            this._games.push(game)
+        }
+        return this._games
     }
 
     public addPlayer (player: Player): void {
@@ -78,6 +89,10 @@ export class Hub implements ISerializable<IHubDto> {
 
     get owner (): Player {
         return this._owner
+    }
+
+    get games (): Game[] {
+        return this._games
     }
 
     set status (status: Hub.status) {

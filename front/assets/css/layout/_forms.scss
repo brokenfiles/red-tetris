@@ -1,1 +1,27 @@
 
+form {
+
+  @apply px-4;
+
+  .form__group {
+    @apply mt-8;
+
+    &:last-child {
+      @apply mb-8;
+    }
+
+    > input, button, label {
+      @apply block w-full;
+    }
+  }
+
+  input {
+    @apply p-4 border;
+  }
+
+}
+
+form button[type=submit], button.form__button {
+  @apply p-4
+  bg-primary text-white;
+}

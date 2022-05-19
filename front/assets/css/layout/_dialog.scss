@@ -8,7 +8,8 @@
 
   &__content {
 
-    @apply w-full flex-1 bg-secondary;
+    @apply w-full flex-1 bg-secondary
+           flex flex-col overflow-y-auto;
 
 
   }

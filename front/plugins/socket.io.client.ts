@@ -2,7 +2,7 @@ import {defineNuxtPlugin, ref} from "#imports";
 import { io } from "socket.io-client"
 
 export default defineNuxtPlugin((nuxtApp) => {
-    const socket = io(`http://localhost:81`, {
+    const socket = io (`http://localhost:81`, {
         // disable auto-connect to manually handle the ws-connection
         autoConnect: false,
         reconnection: false
@@ -20,11 +20,26 @@ export default defineNuxtPlugin((nuxtApp) => {
         provide: {
             socket,
             socket_connected: connected,
-            connectToServer: (playerName: string) => {
-                socket.io.opts.query = {
-                    playerName: playerName
-                }
-                socket.connect()
+            connectToServer: (playerName: string): Promise<boolean> => {
+                return new Promise<boolean>((resolve) => {
+                    socket.io.opts.query = {
+                        playerName: playerName
+                    }
+
+                    const timerId = setTimeout(() => {
+                        // the connection timed out
+                        resolve(false)
+                    }, 2000)
+
+                    socket.on('connect', () => {
+                        clearTimeout(timerId)
+                        resolve(true)
+                    })
+                    socket.connect()
+                })
+            },
+            logout: () => {
+                socket.disconnect()
             }
         }
     }
